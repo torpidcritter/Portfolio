@@ -1,7 +1,0 @@
-node_modules/
-.next/
-out/
-preview/
-preview-artifact/
-__pycache__/
-*.tsbuildinfo
