@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/projects/mandimangoes", "destination": "/projects/vmr-mangoes/index.html", "permanent": true },
+    { "source": "/projects/mandimangoes/:path*", "destination": "/projects/vmr-mangoes/index.html", "permanent": true }
+  ]
+}

@@ -58,14 +58,34 @@ export function initCursor() {
     if (g && !g.contains(e.relatedTarget)) g.classList.remove("is-lit");
   });
 
-  // Tilt (only once a card has finished revealing, so transforms never fight).
+  // Tilt + elevation. JS only writes CSS variables; CSS owns the transform, so reveals and tilt never fight.
   $$("[data-tilt]").forEach((el) => {
+    const max = el.dataset.tilt === "soft" ? 2.2 : 4.5;
     el.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
       if (el.classList.contains("reveal") && !el.classList.contains("is-in")) return;
+      el.classList.add("tilt-ready", "is-tilting");
       const r = el.getBoundingClientRect();
       const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
-      el.style.transform = `perspective(900px) rotateX(${(-py * 4).toFixed(2)}deg) rotateY(${(px * 5).toFixed(2)}deg)`;
+      el.style.setProperty("--rx", `${(-py * max).toFixed(2)}deg`);
+      el.style.setProperty("--ry", `${(px * max * 1.2).toFixed(2)}deg`);
+      el.style.setProperty("--lift", el.dataset.tilt === "soft" ? "-2px" : "-6px");
     });
-    el.addEventListener("pointerleave", () => { el.style.transform = ""; });
+    el.addEventListener("pointerleave", () => {
+      el.classList.remove("is-tilting");
+      el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg"); el.style.setProperty("--lift", "0px");
+    });
   });
+
+  // Hero spotlight follows the pointer (eased).
+  const hero = $("[data-hero]");
+  if (hero) {
+    let hx = 0.7, hy = 0.35, tx = hx, ty = hy;
+    hero.addEventListener("pointermove", (e) => { const r = hero.getBoundingClientRect(); tx = (e.clientX - r.left) / r.width; ty = (e.clientY - r.top) / r.height; });
+    onFrame(() => {
+      if (Math.abs(tx - hx) < 0.0005 && Math.abs(ty - hy) < 0.0005) return;
+      hx = lerp(hx, tx, 0.08); hy = lerp(hy, ty, 0.08);
+      hero.style.setProperty("--hx", `${(hx * 100).toFixed(2)}%`); hero.style.setProperty("--hy", `${(hy * 100).toFixed(2)}%`);
+    });
+  }
 }
